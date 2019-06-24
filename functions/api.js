@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 const qs = require('qs');
-const { lineLogin, middleware } = require('./config/line');
+const { lineLogin, middleware, authURL } = require('./config/line');
 const { messageEvent } = require('./events');
 
 function webhook(req, res) {
@@ -17,8 +17,6 @@ function eventHandle(event) {
     case 'message':
     case 'text':
       messageEvent(event);
-      // imageHandle(event);
-      // videoHandle(event);
       break;
     default: break;
   }
@@ -27,8 +25,6 @@ function eventHandle(event) {
 }
 
 function auth(req, res) {
-  // console.log(req.body);
-
   // Step1: User goes to "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=1591386978&redirect_uri=https://us-central1-lineoa-celeb.cloudfunctions.net/nipa/auth&state=12345abcde&scope=openid%20profile&nonce=09876xyz"
 
   // Step2: Get code from Step 1 via redirect URL [GET]
@@ -36,11 +32,11 @@ function auth(req, res) {
 
   // Step3: Redirect URL sends code to get accessToken [POST] https://api.line.me/oauth2/v2.1/token grant_type, client_id, client_secret, code, redirect_uri
   const data = {
+    code,
     grant_type: 'authorization_code',
     client_id: lineLogin.channelId,
     client_secret: lineLogin.channelSecret,
-    code,
-    redirect_uri: 'https://us-central1-lineoa-celeb.cloudfunctions.net/nipa/auth'
+    redirect_uri: authURL
   };
 
   fetch('https://api.line.me/oauth2/v2.1/token', {
@@ -69,16 +65,19 @@ function profile(req, res) {
   .then(response => {
     const { userId } = response;
     res.send(userId);
+
+    // Get userId and redirect user to somewhere (ex. url of line when user scanning QR code's lineOA)
+
     return true;
   })
   .catch(error => res.json(error));
-
-  // Step 5: Done!
 }
 
 module.exports = function(app) {
-  app.post('/webhook', webhook);
+  app.post('/webhook', middleware, webhook);
   app.post('/profile', profile);
   app.get('/auth', auth);
-  // app.post('/webhook', middleware, webhook);
+
+  // For test
+  // app.post('/webhook', webhook);
 }

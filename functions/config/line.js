@@ -1,5 +1,7 @@
 const line = require('@line/bot-sdk');
 
+const authURL = 'https://us-central1-lineoa-celeb.cloudfunctions.net/nipa/auth';
+
 const lineLogin = {
   channelId: '1591386978',
   channelSecret: '530254a074e37f93a067c66ae1dea5f9'
@@ -14,4 +16,5 @@ module.exports = {
   client: new line.Client(messaging),
   middleware: line.middleware(messaging),
   lineLogin,
+  authURL
 };
