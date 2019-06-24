@@ -2,7 +2,7 @@ const functions = require('firebase-functions');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser')
-const routes = require('./routes');
+const api = require('./api');
 
 const app = express();
 
@@ -11,7 +11,7 @@ app.use(cors({ origin: true }));
 app.use(bodyParser.json());
 
 // Register entire routes
-routes(app);
+api(app);
 
 // Expose Express API as a single Cloud Function:
 exports.nipa = functions.https.onRequest(app);
